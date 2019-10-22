@@ -11,7 +11,7 @@ import (
 var flushTimeout = 5 * time.Second
 
 // template XML document for deleting
-var xmlDocFormatter = "<doc><field name=\"id\">%s</field></doc>"
+var xmlDocFormatter = "<id>%s</id>"
 
 func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.QueueHandle, queue2 awssqs.QueueHandle, records <-chan Record) {
 
