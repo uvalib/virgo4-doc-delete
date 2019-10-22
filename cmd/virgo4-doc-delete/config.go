@@ -13,7 +13,7 @@ type ServiceConfig struct {
 	OutQueue2Name string // SQS queue name for outbound documents
 	PollTimeOut   int64  // the SQS queue timeout (in seconds)
 
-	DataSourceName    string // the name to associate the data with. Each record has metadata showing this value
+	//DataSourceName    string // the name to associate the data with. Each record has metadata showing this value
 	MessageBucketName string // the bucket to use for large messages
 	DownloadDir       string // the S3 file download directory (local)
 
@@ -61,7 +61,7 @@ func LoadConfiguration() *ServiceConfig {
 	cfg.OutQueue1Name = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_OUT_QUEUE_1")
 	cfg.OutQueue2Name = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_OUT_QUEUE_2")
 	cfg.PollTimeOut = int64(envToInt("VIRGO4_DOC_DELETE_QUEUE_POLL_TIMEOUT"))
-	cfg.DataSourceName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_DATA_SOURCE")
+	//cfg.DataSourceName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_DATA_SOURCE")
 	cfg.MessageBucketName = ensureSetAndNonEmpty("VIRGO4_SQS_MESSAGE_BUCKET")
 	cfg.DownloadDir = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_DOWNLOAD_DIR")
 	cfg.WorkerQueueSize = envToInt("VIRGO4_DOC_DELETE_WORK_QUEUE_SIZE")
@@ -71,7 +71,7 @@ func LoadConfiguration() *ServiceConfig {
 	log.Printf("[CONFIG] OutQueue1Name        = [%s]", cfg.OutQueue1Name)
 	log.Printf("[CONFIG] OutQueue2Name        = [%s]", cfg.OutQueue2Name)
 	log.Printf("[CONFIG] PollTimeOut          = [%d]", cfg.PollTimeOut)
-	log.Printf("[CONFIG] DataSourceName       = [%s]", cfg.DataSourceName)
+	//log.Printf("[CONFIG] DataSourceName       = [%s]", cfg.DataSourceName)
 	log.Printf("[CONFIG] MessageBucketName    = [%s]", cfg.MessageBucketName)
 	log.Printf("[CONFIG] DownloadDir          = [%s]", cfg.DownloadDir)
 	log.Printf("[CONFIG] WorkerQueueSize      = [%d]", cfg.WorkerQueueSize)
