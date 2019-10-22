@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/uvalib/virgo4-sqs-sdk/awssqs"
 	"log"
 	"time"
@@ -9,10 +10,13 @@ import (
 // time to wait before flushing pending records
 var flushTimeout = 5 * time.Second
 
-func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, queue awssqs.QueueHandle, records <-chan Record) {
+// template XML document for deleting
+var xmlDocFormatter = "<doc><field name=\"id\">%s</field></doc>"
+
+func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.QueueHandle, queue2 awssqs.QueueHandle, records <-chan Record) {
 
 	count := uint(1)
-	block := make([]Record, 0, awssqs.MAX_SQS_BLOCK_COUNT)
+	messages := make([]awssqs.Message, 0, awssqs.MAX_SQS_BLOCK_COUNT)
 	var record Record
 	for {
 
@@ -30,17 +34,13 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, 
 		// did we timeout, if not we have a message to process
 		if timeout == false {
 
-			block = append(block, record)
+			messages = append(messages, constructMessage( record.Id()))
 
 			// have we reached a block size limit
 			if count%awssqs.MAX_SQS_BLOCK_COUNT == 0 {
 
-				// get a batch of records from the cache
-				messages, err := batchCacheGet(cache, block)
-				fatalIfError(err)
-
 				// send the block
-				err = sendOutboundMessages(config, aws, queue, messages)
+				err := sendOutboundMessages(config, aws, queue1, queue2, messages)
 				if err != nil {
 					if err != awssqs.OneOrMoreOperationsUnsuccessfulError {
 						fatalIfError(err)
@@ -48,7 +48,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, 
 				}
 
 				// reset the block
-				block = block[:0]
+				messages = messages[:0]
 			}
 			count++
 
@@ -58,13 +58,10 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, 
 		} else {
 
 			// we timed out waiting for new messages, let's flush what we have (if anything)
-			if len(block) != 0 {
-
-				messages, err := batchCacheGet(cache, block)
-				fatalIfError(err)
+			if len(messages) != 0 {
 
 				// send the block
-				err = sendOutboundMessages(config, aws, queue, messages)
+				err := sendOutboundMessages(config, aws, queue1, queue2, messages)
 				if err != nil {
 					if err != awssqs.OneOrMoreOperationsUnsuccessfulError {
 						fatalIfError(err)
@@ -72,7 +69,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, 
 				}
 
 				// reset the block
-				block = block[:0]
+				messages = messages[:0]
 
 				log.Printf("Worker %d processed %d records (flushing)", id, count)
 			}
@@ -85,44 +82,51 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, cache CacheProxy, 
 	// should never get here
 }
 
-// look up a set of keys in the cache. We have already verified that the keys all exist so we expect failures to
-// be fatal
-func batchCacheGet(cache CacheProxy, records []Record) ([]awssqs.Message, error) {
+func constructMessage( id string ) awssqs.Message {
 
-	keys := make([]string, 0, len(records))
-	for _, m := range records {
-		keys = append(keys, m.Id())
-	}
-
-	messages, err := cache.Get(keys)
-	if err != nil {
-		return nil, err
-	}
-
-	// special case
-	if len(messages) != len(records) {
-		log.Printf("WARNING: not all cache gets were successful, this is unexpected")
-	}
-
-	return messages, nil
+	payload := fmt.Sprintf( xmlDocFormatter, id )
+	attributes := make([]awssqs.Attribute, 0, 4)
+	attributes = append(attributes, awssqs.Attribute{ Name: awssqs.AttributeKeyRecordId, Value: id})
+	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordType, Value: awssqs.AttributeValueRecordTypeXml})
+	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordOperation, Value: awssqs.AttributeValueRecordOperationDelete})
+	//attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordSource, Value: datasource})
+	return awssqs.Message{Attribs: attributes, Payload: []byte(payload)}
 }
 
-func sendOutboundMessages(config ServiceConfig, aws awssqs.AWS_SQS, queue awssqs.QueueHandle, batch []awssqs.Message) error {
+func sendOutboundMessages(config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.QueueHandle, queue2 awssqs.QueueHandle, batch []awssqs.Message) error {
 
-	opStatus, err := aws.BatchMessagePut(queue, batch)
+	opStatus, err := aws.BatchMessagePut(queue1, batch)
 	if err != nil {
 		if err != awssqs.OneOrMoreOperationsUnsuccessfulError {
 			return err
 		}
 	}
 
-	// if one or more message failed to send, retry...
+	// if one or more message failed to send, report the error
 	if err == awssqs.OneOrMoreOperationsUnsuccessfulError {
 
 		// check the operation results
 		for ix, op := range opStatus {
 			if op == false {
-				log.Printf("WARNING: message %d failed to send to queue", ix)
+				log.Printf("WARNING: message %d failed to send to queue 1", ix)
+			}
+		}
+	}
+
+	opStatus, err = aws.BatchMessagePut(queue2, batch)
+	if err != nil {
+		if err != awssqs.OneOrMoreOperationsUnsuccessfulError {
+			return err
+		}
+	}
+
+	// if one or more message failed to send, report the error
+	if err == awssqs.OneOrMoreOperationsUnsuccessfulError {
+
+		// check the operation results
+		for ix, op := range opStatus {
+			if op == false {
+				log.Printf("WARNING: message %d failed to send to queue 2", ix)
 			}
 		}
 	}

@@ -11,12 +11,11 @@ import (
 
 var BadRecordError = fmt.Errorf("Bad record encountered")
 var BadRecordIdError = fmt.Errorf("Bad record identifier")
-var RecordNotInCacheError = fmt.Errorf("Record is not available in the cache")
 var FileNotOpenError = fmt.Errorf("File is not open")
 
 // the RecordLoader interface
 type RecordLoader interface {
-	Validate(CacheProxy) error
+	Validate() error
 	First() (Record, error)
 	Next() (Record, error)
 	Done()
@@ -54,14 +53,14 @@ func NewRecordLoader(filename string) (RecordLoader, error) {
 }
 
 // read all the records to ensure the file is valid
-func (l *recordLoaderImpl) Validate(cache CacheProxy) error {
+func (l *recordLoaderImpl) Validate( ) error {
 
 	if l.File == nil {
 		return FileNotOpenError
 	}
 
 	// get the first record and error out if bad. An EOF is OK, just means the file is empty
-	rec, err := l.First()
+	_, err := l.First()
 	if err != nil {
 		// are we done
 		if err == io.EOF {
@@ -72,13 +71,9 @@ func (l *recordLoaderImpl) Validate(cache CacheProxy) error {
 		}
 	}
 
-	// batch up our cache lookups for performance reasons
-	lookupIds := make([]string, 0, lookupCacheMaxKeyCount)
-	lookupIds = append(lookupIds, rec.Id())
-
 	// read all the records and bail on the first failure except EOF
 	for {
-		rec, err = l.Next()
+		_, err = l.Next()
 
 		if err != nil {
 			// are we done
@@ -87,37 +82,6 @@ func (l *recordLoaderImpl) Validate(cache CacheProxy) error {
 			} else {
 				return err
 			}
-		}
-
-		lookupIds = append(lookupIds, rec.Id())
-		if len(lookupIds) == lookupCacheMaxKeyCount {
-
-			// lookup in the cache
-			found, err := cache.Exists(lookupIds)
-			if err != nil {
-				return err
-			}
-
-			// if we cannot find it in the cache, its an error
-			if found == false {
-				return RecordNotInCacheError
-			}
-
-			lookupIds = lookupIds[:0]
-		}
-	}
-
-	if len(lookupIds) != 0 {
-
-		// lookup in the cache
-		found, err := cache.Exists(lookupIds)
-		if err != nil {
-			return err
-		}
-
-		// if we cannot find it in the cache, its an error
-		if found == false {
-			return RecordNotInCacheError
 		}
 	}
 
