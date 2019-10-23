@@ -75,7 +75,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 			}
 
 			// reset the count
-			count = 1
+			count = 0
 		}
 	}
 
