@@ -37,7 +37,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 			messages = append(messages, constructMessage( record.Id()))
 
 			// have we reached a block size limit
-			if count != 0 && count%awssqs.MAX_SQS_BLOCK_COUNT == 0 {
+			if count != 0 && count%awssqs.MAX_SQS_BLOCK_COUNT == awssqs.MAX_SQS_BLOCK_COUNT-1 {
 
 				// send the block
 				err := sendOutboundMessages(config, aws, queue1, queue2, messages)
