@@ -146,21 +146,12 @@ func (l *recordLoaderImpl) recordRead() (Record, error) {
 		return nil, BadRecordError
 	}
 
-	if id[0] != 'u' {
-		log.Printf("ERROR: record id is suspect (%s)", id)
-		return nil, BadRecordIdError
-	}
-
 	return &recordImpl{RecordId: id}, nil
 }
 
 func (r *recordImpl) Id() string {
 	return r.RecordId
 }
-
-//func (r *recordImpl) Raw() []byte {
-//	return r.RawBytes
-//}
 
 //
 // end of file
