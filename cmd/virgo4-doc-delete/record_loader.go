@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-var BadRecordError = fmt.Errorf("Bad record encountered")
-var BadRecordIdError = fmt.Errorf("Bad record identifier")
-var FileNotOpenError = fmt.Errorf("File is not open")
+var ErrBadRecord = fmt.Errorf("bad record encountered")
+//var ErrBadRecordId = fmt.Errorf("bad record identifier")
+var ErrFileNotOpen = fmt.Errorf("file is not open")
 
 // the RecordLoader interface
 type RecordLoader interface {
@@ -56,7 +56,7 @@ func NewRecordLoader(filename string) (RecordLoader, error) {
 func (l *recordLoaderImpl) Validate() error {
 
 	if l.File == nil {
-		return FileNotOpenError
+		return ErrFileNotOpen
 	}
 
 	// get the first record and error out if bad. An EOF is OK, just means the file is empty
@@ -98,7 +98,7 @@ func (l *recordLoaderImpl) Validate() error {
 func (l *recordLoaderImpl) First() (Record, error) {
 
 	if l.File == nil {
-		return nil, FileNotOpenError
+		return nil, ErrFileNotOpen
 	}
 
 	// go to the start of the file and then get the next record
@@ -113,7 +113,7 @@ func (l *recordLoaderImpl) First() (Record, error) {
 func (l *recordLoaderImpl) Next() (Record, error) {
 
 	if l.File == nil {
-		return nil, FileNotOpenError
+		return nil, ErrFileNotOpen
 	}
 
 	rec, err := l.recordRead()
@@ -143,7 +143,7 @@ func (l *recordLoaderImpl) recordRead() (Record, error) {
 	id = strings.TrimSuffix(id, "\n")
 
 	if len(id) == 0 {
-		return nil, BadRecordError
+		return nil, ErrBadRecord
 	}
 
 	return &recordImpl{RecordId: id}, nil
