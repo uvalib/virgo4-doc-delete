@@ -53,7 +53,7 @@ func NewRecordLoader(filename string) (RecordLoader, error) {
 }
 
 // read all the records to ensure the file is valid
-func (l *recordLoaderImpl) Validate( ) error {
+func (l *recordLoaderImpl) Validate() error {
 
 	if l.File == nil {
 		return FileNotOpenError
@@ -67,7 +67,7 @@ func (l *recordLoaderImpl) Validate( ) error {
 			log.Printf("WARNING: EOF on first read, looks like an empty file")
 			return nil
 		} else {
-			log.Printf("ERROR: validation failure on record index 0" )
+			log.Printf("ERROR: validation failure on record index 0")
 			return err
 		}
 	}

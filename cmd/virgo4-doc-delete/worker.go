@@ -34,7 +34,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 		// did we timeout, if not we have a message to process
 		if timeout == false {
 
-			messages = append(messages, constructMessage( record.Id()))
+			messages = append(messages, constructMessage(record.Id()))
 
 			// have we reached a block size limit
 			if count != 0 && count%awssqs.MAX_SQS_BLOCK_COUNT == awssqs.MAX_SQS_BLOCK_COUNT-1 {
@@ -82,11 +82,11 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 	// should never get here
 }
 
-func constructMessage( id string ) awssqs.Message {
+func constructMessage(id string) awssqs.Message {
 
-	payload := fmt.Sprintf( xmlDocFormatter, id )
+	payload := fmt.Sprintf(xmlDocFormatter, id)
 	attributes := make([]awssqs.Attribute, 0, 4)
-	attributes = append(attributes, awssqs.Attribute{ Name: awssqs.AttributeKeyRecordId, Value: id})
+	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordId, Value: id})
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordType, Value: awssqs.AttributeValueRecordTypeXml})
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordOperation, Value: awssqs.AttributeValueRecordOperationDelete})
 	//attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordSource, Value: datasource})

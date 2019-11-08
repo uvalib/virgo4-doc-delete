@@ -64,7 +64,7 @@ func main() {
 			fatalIfError(e)
 
 			// validate the file
-			e = loader.Validate( )
+			e = loader.Validate()
 			loader.Done()
 			if e != nil {
 				log.Printf("ERROR: %s/%s (%s) appears to be invalid, ignoring it (%s)", f.SourceBucket, f.SourceKey, localNames[ix], e.Error())
