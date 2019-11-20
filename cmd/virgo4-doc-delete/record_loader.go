@@ -10,6 +10,7 @@ import (
 )
 
 var ErrBadRecord = fmt.Errorf("bad record encountered")
+
 //var ErrBadRecordId = fmt.Errorf("bad record identifier")
 var ErrFileNotOpen = fmt.Errorf("file is not open")
 
