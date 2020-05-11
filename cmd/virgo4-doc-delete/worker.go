@@ -87,16 +87,16 @@ func constructMessage(id string) awssqs.Message {
 	return awssqs.Message{Attribs: attributes, Payload: []byte(payload)}
 }
 
-func sendOutboundMessages(aws awssqs.AWS_SQS, queue1 awssqs.QueueHandle, queue2 awssqs.QueueHandle, batch []awssqs.Message) error {
+func sendOutboundMessages(aws awssqs.AWS_SQS, outQueue awssqs.QueueHandle, cacheQueue awssqs.QueueHandle, batch []awssqs.Message) error {
 
-	opStatus1, err1 := aws.BatchMessagePut(queue1, batch)
+	opStatus1, err1 := aws.BatchMessagePut(outQueue, batch)
 	if err1 != nil {
 		// if an error we can handle, retry
 		if err1 == awssqs.ErrOneOrMoreOperationsUnsuccessful {
-			log.Printf("WARNING: one or more items failed to send to queue 1, retrying...")
+			log.Printf("WARNING: one or more items failed to send to output queue, retrying...")
 
 			// retry the failed items and bail out if we cannot retry
-			err1 = aws.MessagePutRetry(queue1, batch, opStatus1, sendRetries)
+			err1 = aws.MessagePutRetry(outQueue, batch, opStatus1, sendRetries)
 		}
 
 		// bail out if an error and let someone else handle it
@@ -105,19 +105,23 @@ func sendOutboundMessages(aws awssqs.AWS_SQS, queue1 awssqs.QueueHandle, queue2 
 		}
 	}
 
-	opStatus2, err2 := aws.BatchMessagePut(queue2, batch)
-	if err2 != nil {
-		// if an error we can handle, retry
-		if err2 == awssqs.ErrOneOrMoreOperationsUnsuccessful {
-			log.Printf("WARNING: one or more items failed to send to queue 2, retrying...")
+	// if we are configured to send items to the cache
+	if cacheQueue != "" {
 
-			// retry the failed items and bail out if we cannot retry
-			err2 = aws.MessagePutRetry(queue2, batch, opStatus2, sendRetries)
-		}
-
-		// bail out if an error and let someone else handle it
+		opStatus2, err2 := aws.BatchMessagePut(cacheQueue, batch)
 		if err2 != nil {
-			return err2
+			// if an error we can handle, retry
+			if err2 == awssqs.ErrOneOrMoreOperationsUnsuccessful {
+				log.Printf("WARNING: one or more items failed to send to cache queue, retrying...")
+
+				// retry the failed items and bail out if we cannot retry
+				err2 = aws.MessagePutRetry(cacheQueue, batch, opStatus2, sendRetries)
+			}
+
+			// bail out if an error and let someone else handle it
+			if err2 != nil {
+				return err2
+			}
 		}
 	}
 
