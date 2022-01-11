@@ -69,8 +69,8 @@ func LoadConfiguration() *ServiceConfig {
 	var cfg ServiceConfig
 
 	cfg.InQueueName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_IN_QUEUE")
-	cfg.OutQueueName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_OUT_QUEUE_1")
-	cfg.CacheQueueName = envWithDefault("VIRGO4_DOC_DELETE_OUT_QUEUE_2", "")
+	cfg.OutQueueName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_OUT_QUEUE")
+	cfg.CacheQueueName = envWithDefault("VIRGO4_DOC_DELETE_CACHE_QUEUE", "")
 	cfg.PollTimeOut = int64(envToInt("VIRGO4_DOC_DELETE_QUEUE_POLL_TIMEOUT"))
 	//cfg.DataSourceName = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_DATA_SOURCE")
 	cfg.MessageBucketName = ensureSetAndNonEmpty("VIRGO4_SQS_MESSAGE_BUCKET")
