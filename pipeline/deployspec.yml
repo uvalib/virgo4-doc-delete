@@ -6,7 +6,7 @@ version: 0.2
 
 env:
   variables:
-    terraform_version: 1.1.7
+    terraform_version: 1.2.1
 
 phases:
   install:
@@ -27,6 +27,12 @@ phases:
       - terraform init -no-color
       - terraform apply -no-color -auto-approve
       - cd $CODEBUILD_SRC_DIR/terraform-infrastructure/virgo4.lib.virginia.edu/ecs-tasks/staging/virgo4-image-doc-delete
+      - terraform init -no-color
+      - terraform apply -no-color -auto-approve
+      - cd $CODEBUILD_SRC_DIR/terraform-infrastructure/mandala/ecs-tasks/staging/mandala-kmassets-doc-delete
+      - terraform init -no-color
+      - terraform apply -no-color -auto-approve
+      - cd $CODEBUILD_SRC_DIR/terraform-infrastructure/mandala/ecs-tasks/staging/mandala-kmterms-doc-delete
       - terraform init -no-color
       - terraform apply -no-color -auto-approve
 
