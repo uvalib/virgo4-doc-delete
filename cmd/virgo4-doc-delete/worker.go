@@ -10,9 +10,6 @@ import (
 // time to wait before flushing pending records
 var flushTimeout = 5 * time.Second
 
-// template XML document for deleting
-var xmlDocFormatter = "<id>%s</id>"
-
 // number of times to retry a message put before giving up and terminating
 var sendRetries = uint(3)
 
@@ -36,7 +33,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 		// did we timeout, if not we have a message to process
 		if timeout == false {
 
-			messages = append(messages, constructMessage(record.Id()))
+			messages = append(messages, constructMessage(config, record.Id()))
 
 			// have we reached a block size limit
 			if count != 0 && count%awssqs.MAX_SQS_BLOCK_COUNT == awssqs.MAX_SQS_BLOCK_COUNT-1 {
@@ -76,9 +73,9 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 	// should never get here
 }
 
-func constructMessage(id string) awssqs.Message {
+func constructMessage(config ServiceConfig, id string) awssqs.Message {
 
-	payload := fmt.Sprintf(xmlDocFormatter, id)
+	payload := fmt.Sprintf(config.XmlDocFormat, id)
 	attributes := make([]awssqs.Attribute, 0, 4)
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordId, Value: id})
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordType, Value: awssqs.AttributeValueRecordTypeXml})
