@@ -25,7 +25,7 @@ ENV TZ=UTC
 RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Specify home 
-ENV APP_HOME /virgo4-doc-delete
+ENV APP_HOME /virgo4-id-ingest
 WORKDIR $APP_HOME
 
 # Create necessary directories
@@ -38,10 +38,10 @@ CMD scripts/entry.sh
 # Move in necessary assets
 COPY package/data/container_bash_profile /home/webservice/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
-COPY --from=builder /build/bin/virgo4-doc-delete.linux $APP_HOME/bin/virgo4-doc-delete
+COPY --from=builder /build/bin/virgo4-id-ingest.linux $APP_HOME/bin/virgo4-id-ingest
 
 # Ensure permissions are correct
-RUN chown webservice:webservice /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/virgo4-doc-delete && chmod 755 /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/virgo4-doc-delete
+RUN chown webservice:webservice /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/virgo4-id-ingest && chmod 755 /home/webservice/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/virgo4-id-ingest
 
 # Add the build tag
 ARG BUILD_TAG

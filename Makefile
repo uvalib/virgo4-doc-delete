@@ -6,7 +6,7 @@ GOGET = $(GOCMD) get
 GOMOD = $(GOCMD) mod
 GOFMT = $(GOCMD) fmt
 GOVET = $(GOCMD) vet
-PACKAGENAME=virgo4-doc-delete
+PACKAGENAME=virgo4-id-ingest
 BINNAME=$(PACKAGENAME)
 
 build: darwin 

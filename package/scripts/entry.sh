@@ -1,6 +1,6 @@
 # run application
 
-./bin/virgo4-doc-delete
+./bin/virgo4-id-ingest
 
 #
 # end of file
