@@ -75,7 +75,7 @@ func worker(id int, config ServiceConfig, aws awssqs.AWS_SQS, queue1 awssqs.Queu
 
 func constructMessage(config ServiceConfig, id string) awssqs.Message {
 
-	payload := fmt.Sprintf(config.XmlDocFormat, id)
+	payload := fmt.Sprintf(config.PayloadFormat, id)
 	attributes := make([]awssqs.Attribute, 0, 4)
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordId, Value: id})
 	attributes = append(attributes, awssqs.Attribute{Name: awssqs.AttributeKeyRecordType, Value: awssqs.AttributeValueRecordTypeXml})

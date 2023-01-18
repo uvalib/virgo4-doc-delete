@@ -20,7 +20,7 @@ type ServiceConfig struct {
 	WorkerQueueSize int // the inbound message queue size to feed the workers
 	Workers         int // the number of worker processes
 
-	XmlDocFormat string // the format of the document being generated, e.g "<id>%s</id>"
+	PayloadFormat string // the format of the generated payload, e.g "<id>%s</id>"
 }
 
 func envWithDefault(env string, defaultValue string) string {
@@ -79,7 +79,7 @@ func LoadConfiguration() *ServiceConfig {
 	cfg.DownloadDir = ensureSetAndNonEmpty("VIRGO4_DOC_DELETE_DOWNLOAD_DIR")
 	cfg.WorkerQueueSize = envToInt("VIRGO4_DOC_DELETE_WORK_QUEUE_SIZE")
 	cfg.Workers = envToInt("VIRGO4_DOC_DELETE_WORKERS")
-	cfg.XmlDocFormat = ensureSetAndNonEmpty("VIRGO4_DOC_FORMAT")
+	cfg.PayloadFormat = ensureSetAndNonEmpty("VIRGO4_DOC_FORMAT")
 
 	log.Printf("[CONFIG] InQueueName          = [%s]", cfg.InQueueName)
 	log.Printf("[CONFIG] OutQueueName         = [%s]", cfg.OutQueueName)
@@ -90,7 +90,7 @@ func LoadConfiguration() *ServiceConfig {
 	log.Printf("[CONFIG] DownloadDir          = [%s]", cfg.DownloadDir)
 	log.Printf("[CONFIG] WorkerQueueSize      = [%d]", cfg.WorkerQueueSize)
 	log.Printf("[CONFIG] Workers              = [%d]", cfg.Workers)
-	log.Printf("[CONFIG] XmlDocFormat         = [%s]", cfg.XmlDocFormat)
+	log.Printf("[CONFIG] PayloadFormat        = [%s]", cfg.PayloadFormat)
 
 	if cfg.CacheQueueName == "" {
 		log.Printf("INFO: cache queue name is blank, record caching is DISABLED!!")
